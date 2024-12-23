@@ -1,3 +1,3 @@
-# Mentra Merge
+# Live Translation
 
-Proactive AI hybrid thinking smart glasses app.
+Live translation app for smart glasses.

@@ -40,11 +40,8 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
     Handler debugTranscriptsHandler = new Handler(Looper.getMainLooper());
     private boolean debugTranscriptsRunning = false;
 
-    String finalLiveCaption = "";
     private String translationText = "";
-    private String liveCaptionText = "";
 
-    private String finalLiveCaptionText = "";
     private String finalTranslationText = "";
     private boolean segmenterLoaded = false;
     private boolean segmenterLoading = false;
@@ -158,7 +155,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
             transcriptsBuffer.add(text);
         }
         if (isTranslated) {
-            debounceAndShowTranscriptOnGlasses(text, languageCode, isFinal, isTranslated);
+            debounceAndShowTranscriptOnGlasses(text, isFinal);
         }
     }
 
@@ -168,45 +165,31 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
     private long glassesTranslatedTranscriptLastSentTime = 0;
     private final long GLASSES_TRANSCRIPTS_DEBOUNCE_DELAY = 400; // in milliseconds
 
-    private void debounceAndShowTranscriptOnGlasses(String transcript, String languageCode, boolean isFinal, boolean isTranslated) {
+    private void debounceAndShowTranscriptOnGlasses(String transcript, boolean isFinal) {
         glassesTranscriptDebounceHandler.removeCallbacks(glassesTranscriptDebounceRunnable);
         long currentTime = System.currentTimeMillis();
 
         if (isFinal) {
-            showTranscriptsToUser(transcript, isTranslated, true);
+            showTranscriptsToUser(transcript, true);
             return;
         }
 
-        if (isTranslated) {
-            if (currentTime - glassesTranslatedTranscriptLastSentTime >= GLASSES_TRANSCRIPTS_DEBOUNCE_DELAY) {
-                showTranscriptsToUser(transcript, true, false);
-                glassesTranslatedTranscriptLastSentTime = currentTime;
-            } else {
-                glassesTranscriptDebounceRunnable = () -> {
-                    showTranscriptsToUser(transcript, true, false);
-                    glassesTranslatedTranscriptLastSentTime = System.currentTimeMillis();
-                };
-                glassesTranscriptDebounceHandler.postDelayed(glassesTranscriptDebounceRunnable, GLASSES_TRANSCRIPTS_DEBOUNCE_DELAY);
-            }
+        if (currentTime - glassesTranslatedTranscriptLastSentTime >= GLASSES_TRANSCRIPTS_DEBOUNCE_DELAY) {
+            showTranscriptsToUser(transcript, false);
+            glassesTranslatedTranscriptLastSentTime = currentTime;
         } else {
-            if (currentTime - glassesTranscriptLastSentTime >= GLASSES_TRANSCRIPTS_DEBOUNCE_DELAY) {
-                showTranscriptsToUser(transcript, false, false);
-                glassesTranscriptLastSentTime = currentTime;
-            } else {
-                glassesTranscriptDebounceRunnable = () -> {
-                    showTranscriptsToUser(transcript, false, false);
-                    glassesTranscriptLastSentTime = System.currentTimeMillis();
-                };
-                glassesTranscriptDebounceHandler.postDelayed(glassesTranscriptDebounceRunnable, GLASSES_TRANSCRIPTS_DEBOUNCE_DELAY);
-            }
+            glassesTranscriptDebounceRunnable = () -> {
+                showTranscriptsToUser(transcript, false);
+                glassesTranslatedTranscriptLastSentTime = System.currentTimeMillis();
+            };
+            glassesTranscriptDebounceHandler.postDelayed(glassesTranscriptDebounceRunnable, GLASSES_TRANSCRIPTS_DEBOUNCE_DELAY);
         }
     }
 
-    private void showTranscriptsToUser(final String transcript, final boolean isTranslated, final boolean isFinal) {
+    private void showTranscriptsToUser(final String transcript, final boolean isFinal) {
         String processed_transcript = transcript;
 
-        if (!isTranslated && getChosenTranscribeLanguage(this).equals("Chinese (Pinyin)") ||
-                isTranslated && getChosenSourceLanguage(this).equals("Chinese (Pinyin)")) {
+        if (getChosenSourceLanguage(this).equals("Chinese (Pinyin)")) {
             if(segmenterLoaded) {
                 processed_transcript = convertToPinyin(transcript);
             } else if (!segmenterLoading) {
@@ -219,7 +202,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
             }
         }
 
-        sendTextWallLiveTranslationLiveCaption(processed_transcript, isTranslated, isFinal);
+        sendTextWallLiveTranslationLiveCaption(processed_transcript, isFinal);
     }
 
     private void loadSegmenter() {
@@ -270,9 +253,8 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         return cleanText;
     }
 
-    public void sendTextWallLiveTranslationLiveCaption(final String newText, final boolean isTranslated, final boolean isFinal) {
+    public void sendTextWallLiveTranslationLiveCaption(final String newText, final boolean isFinal) {
         if (!newText.isEmpty()) {
-            if (isTranslated) {
                 if (getChosenSourceLanguage(this).equals("Chinese (Hanzi)") ||
                         getChosenSourceLanguage(this).equals("Chinese (Pinyin)") && !segmenterLoaded) {
                     translationText = hanziTextTranscriptProcessor.processString(finalTranslationText + " " + newText, isFinal);
@@ -288,23 +270,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                 if (finalTranslationText.length() > 5000) {
                     finalTranslationText = finalTranslationText.substring(finalTranslationText.length() - 5000);
                 }
-            } else {
-                if (getChosenTranscribeLanguage(this).equals("Chinese (Hanzi)") ||
-                        getChosenTranscribeLanguage(this).equals("Chinese (Pinyin)") && !segmenterLoaded) {
-                    liveCaptionText = hanziTextTranscriptProcessor.processString(finalLiveCaptionText + " " + newText, isFinal);
-                } else {
-                    liveCaptionText = normalTextTranscriptProcessor.processString(finalLiveCaptionText + " " + newText, isFinal);
-                }
-
-                if (isFinal) {
-                    finalLiveCaptionText = newText;
-                }
-
-                // Limit the length of the final live caption text
-                if (finalLiveCaptionText.length() > 5000) {
-                    finalLiveCaptionText = finalLiveCaptionText.substring(finalLiveCaptionText.length() - 5000);
-                }
-            }
         }
 
         String textBubble = "\uD83D\uDDE8";
@@ -316,14 +281,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
             finalLiveTranslationDisplayText = "";
         }
 
-        final String finalLiveCaptionDisplayText;
-        if (!liveCaptionText.isEmpty()) {
-            finalLiveCaptionDisplayText = textBubble + liveCaptionText;
-        } else {
-            finalLiveCaptionDisplayText = "";
-        }
-
-        displayQueue.addTask(new DisplayQueue.Task(() -> augmentOSLib.sendDoubleTextWall(finalLiveTranslationDisplayText, finalLiveCaptionDisplayText), true, false, true));
+        displayQueue.addTask(new DisplayQueue.Task(() -> augmentOSLib.sendDoubleTextWall(finalLiveTranslationDisplayText, ""), true, false, true));
     }
 
     public static void saveChosenSourceLanguage(Context context, String sourceLanguageString) {
@@ -417,8 +375,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                             break;
                     }
 
-                    finalLiveCaption = "";
-                    finalLiveCaptionText = "";
                     finalTranslationText = "";
                 }
 
@@ -484,8 +440,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                             Log.d(TAG, "UNKNOWN TRANSLATE LANGUAGE: " + currentTranslateLanguage);
                             break;
                     }
-                    finalLiveCaption = "";
-                    finalLiveCaptionText = "";
                     finalTranslationText = "";
                 }
 
