@@ -58,7 +58,8 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
 
     private final TranscriptProcessor normalTextTranscriptProcessor = new TranscriptProcessor(maxNormalTextCharsPerTranscript);
     private final TranscriptProcessor hanziTextTranscriptProcessor = new TranscriptProcessor(maxCharsPerHanziTranscript);
-
+    private final Handler callTimeoutHandler = new Handler(Looper.getMainLooper());
+    private Runnable timeoutRunnable;
     public LiveTranslationService() {
         super();
     }
@@ -127,6 +128,8 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
     public void onDestroy(){
         Log.d(TAG, "onDestroy: Called");
         Log.d(TAG, "Deinit augmentOSLib");
+        augmentOSLib.subscribe(DataStreamType.KILL_TRANSLATION_STREAM, this::processTranscriptionCallback);
+
         augmentOSLib.deinit();
         Log.d(TAG, "csePoll handler remove");
         Log.d(TAG, "displayPoll handler remove");
@@ -254,6 +257,14 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
     }
 
     public void sendTextWallLiveTranslationLiveCaption(final String newText, final boolean isFinal) {
+        callTimeoutHandler.removeCallbacks(timeoutRunnable);
+
+        timeoutRunnable = () -> {
+            // Call your desired function here
+            augmentOSLib.sendHomeScreen();
+        };
+        callTimeoutHandler.postDelayed(timeoutRunnable, 16000);
+
         if (!newText.isEmpty()) {
                 if (getChosenSourceLanguage(this).equals("Chinese (Hanzi)") ||
                         getChosenSourceLanguage(this).equals("Chinese (Pinyin)") && !segmenterLoaded) {
