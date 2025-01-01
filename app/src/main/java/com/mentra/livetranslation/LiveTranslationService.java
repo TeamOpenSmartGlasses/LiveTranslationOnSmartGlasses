@@ -71,6 +71,10 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         // Create AugmentOSLib instance with context: this
         augmentOSLib = new AugmentOSLib(this);
 
+
+        //start with english, will switch after
+//        augmentOSLib.subscribe(DataStreamType.TRANSLATION_ENGLISH_STREAM, LiveTranslationService.this::processTranslationCallback);
+
         // Subscribe to a data stream (ex: transcription), and specify a callback function
         // Initialize the language check handler
         transcribeLanguageCheckHandler = new Handler(Looper.getMainLooper());
@@ -457,7 +461,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                 // Schedule the next check
                 translateLanguageCheckHandler.postDelayed(this, 333); // Approximately 3 times a second
             }
-        }, 0);
+        }, 500);
     }
 
 
