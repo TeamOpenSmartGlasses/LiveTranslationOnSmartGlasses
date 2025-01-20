@@ -24,10 +24,6 @@
             <intent-filter>
                 <action android:name="AUGMENTOS_INTENT" />
             </intent-filter>
-
-            <!-- Metadata to identify this as an AugmentOS TPA -->
-            <meta-data android:name="com.augmentos.tpa.name" android:value="Live Translation" />
-            <meta-data android:name="com.augmentos.tpa.description" android:value="Language learning smart glasses." />
         </service>
 
         <!-- (OPTIONAL) Declare an activity to start AugmentOS if this app is started from the launcher -->
