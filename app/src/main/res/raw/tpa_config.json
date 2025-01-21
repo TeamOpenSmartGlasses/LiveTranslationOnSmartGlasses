@@ -1,5 +1,123 @@
 {
   "name": "Live Translation",
   "description": "Live translation on smart glasses",
-  "version": 1.0
+  "version": 1.0,
+  "settings": [
+    {
+      "type": "group",
+      "title": "Language settings"
+    },
+    {
+      "key": "transcribe_language",
+      "type": "select",
+      "label": "Translate from:",
+      "defaultValue": "Chinese (Pinyin)",
+      "options": [
+        {
+          "label": "English",
+          "value": "English"
+        },
+        {
+          "label": "Russian",
+          "value": "Russian"
+        },
+        {
+          "label": "Chinese (Pinyin)",
+          "value": "Chinese (Pinyin)"
+        },
+        {
+          "label": "Chinese (Hanzi)",
+          "value": "Chinese (Hanzi)"
+        },
+        {
+          "label": "Spanish",
+          "value": "Spanish"
+        },
+        {
+          "label": "Dutch",
+          "value": "Dutch"
+        },
+        {
+          "label": "French",
+          "value": "French"
+        },
+        {
+          "label": "German",
+          "value": "German"
+        },
+        {
+          "label": "Korean",
+          "value": "Korean"
+        },
+        {
+          "label": "Italian",
+          "value": "Italian"
+        },
+        {
+          "label": "Turkish",
+          "value": "Turkish"
+        },
+        {
+          "label": "Portuguese",
+          "value": "Portuguese"
+        }
+      ]
+    },
+    {
+      "key": "source_language",
+      "type": "select",
+      "label": "Translate to",
+      "defaultValue": "English",
+      "options": [
+        {
+          "label": "English",
+          "value": "English"
+        },
+        {
+          "label": "Russian",
+          "value": "Russian"
+        },
+        {
+          "label": "Chinese (Pinyin)",
+          "value": "Chinese (Pinyin)"
+        },
+        {
+          "label": "Chinese (Hanzi)",
+          "value": "Chinese (Hanzi)"
+        },
+        {
+          "label": "Spanish",
+          "value": "Spanish"
+        },
+        {
+          "label": "Dutch",
+          "value": "Dutch"
+        },
+        {
+          "label": "French",
+          "value": "French"
+        },
+        {
+          "label": "German",
+          "value": "German"
+        },
+        {
+          "label": "Korean",
+          "value": "Korean"
+        },
+        {
+          "label": "Italian",
+          "value": "Italian"
+        },
+        {
+          "label": "Turkish",
+          "value": "Turkish"
+        },
+        {
+          "label": "Portuguese",
+          "value": "Portuguese"
+        }
+      ]
+    }
+  ]
 }

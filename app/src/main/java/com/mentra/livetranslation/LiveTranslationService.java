@@ -10,6 +10,7 @@ import androidx.preference.PreferenceManager;
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.huaban.analysis.jieba.SegToken;
 import com.teamopensmartglasses.augmentoslib.AugmentOSLib;
+import com.teamopensmartglasses.augmentoslib.AugmentOSSettingsManager;
 import com.teamopensmartglasses.augmentoslib.DataStreamType;
 import com.teamopensmartglasses.augmentoslib.SmartGlassesAndroidService;
 import com.teamopensmartglasses.augmentoslib.events.TranslateOutputEvent;
@@ -300,14 +301,11 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
     }
 
     public static void saveChosenSourceLanguage(Context context, String sourceLanguageString) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .putString(context.getResources().getString(R.string.SHARED_PREF_SOURCE_LANGUAGE), sourceLanguageString)
-                .apply();
+        AugmentOSSettingsManager.setStringSetting(context, "source_language", sourceLanguageString);
     }
 
     public static String getChosenSourceLanguage(Context context) {
-        String sourceLanguageString = PreferenceManager.getDefaultSharedPreferences(context).getString(context.getResources().getString(R.string.SHARED_PREF_SOURCE_LANGUAGE), "");
+        String sourceLanguageString = AugmentOSSettingsManager.getStringSetting(context, "source_language");
         if (sourceLanguageString.equals("")){
             saveChosenSourceLanguage(context, "English");
             sourceLanguageString = "English";
@@ -317,14 +315,11 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
 
     public static void saveChosenTranscribeLanguage(Context context, String transcribeLanguageString) {
         Log.d(TAG, "set saveChosenTranscribeLanguage");
-        PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .putString(context.getResources().getString(R.string.SHARED_PREF_TRANSCRIBE_LANGUAGE), transcribeLanguageString)
-                .apply();
+        AugmentOSSettingsManager.setStringSetting(context, "transcribe_language", transcribeLanguageString);
     }
 
     public static String getChosenTranscribeLanguage(Context context) {
-        String transcribeLanguageString = PreferenceManager.getDefaultSharedPreferences(context).getString(context.getResources().getString(R.string.SHARED_PREF_TRANSCRIBE_LANGUAGE), "");
+        String transcribeLanguageString = AugmentOSSettingsManager.getStringSetting(context, "transcribe_language");
         if (transcribeLanguageString.equals("")){
             saveChosenTranscribeLanguage(context, "Chinese");
             transcribeLanguageString = "Chinese";
