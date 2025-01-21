@@ -6,78 +6,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Language Learning Title -->
     <TextView
-        android:id="@+id/languageLearningTitle"
+        android:id="@+id/liveTranslationTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Live Translation"
-        android:textSize="30sp"
+        android:layout_marginTop="28dp"
+        android:text="Live Translation on Smart Glasses"
+        android:textSize="25sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/transcribeLanguageTitle"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
-
-    <!-- Transcribe Language Title -->
-    <TextView
-        android:id="@+id/transcribeLanguageTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Transcribe Language:"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@+id/languageLearningTitle"
+        app:layout_constraintHorizontal_bias="0.481"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"/>
-
-    <!-- Transcribe Language Spinner -->
-    <Spinner
-        android:id="@+id/transcribeLanguageSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@+id/transcribeLanguageTitle"
-        app:layout_constraintTop_toTopOf="@+id/transcribeLanguageTitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="16dp"/>
-
-    <!-- Source Language Title -->
-    <TextView
-        android:id="@+id/sourceLanguageTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="I speak:"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@+id/transcribeLanguageSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"/>
-
-    <!-- Source Language Spinner -->
-    <Spinner
-        android:id="@+id/sourceLanguageSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toEndOf="@+id/sourceLanguageTitle"
-        app:layout_constraintTop_toTopOf="@+id/sourceLanguageTitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="16dp"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/post_sign_in_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="44dp"
+        android:layout_marginTop="28dp"
         android:text="Please open AugmentOS to use this app."
         android:textAlignment="center"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/sourceLanguageSpinner" />
+        app:layout_constraintTop_toBottomOf="@+id/liveTranslationTitle" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
