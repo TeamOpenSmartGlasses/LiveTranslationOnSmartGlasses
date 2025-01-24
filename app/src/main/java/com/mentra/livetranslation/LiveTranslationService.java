@@ -459,13 +459,12 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         }, 500);
     }
 
-
     public static class TranscriptProcessor {
 
         private final int maxCharsPerLine;
-        private final int maxLines = 4;
+        private final int maxLines = 3;
 
-        private Deque<String> lines;
+        private final Deque<String> lines;
 
         private String partialText;
 
