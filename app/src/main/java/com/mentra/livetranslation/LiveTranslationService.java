@@ -85,8 +85,8 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         startTranscribeLanguageCheckTask();
         startTranslateLanguageCheckTask();
 
-        //setup event bus subscribers
-        setupEventBusSubscribers();
+//        //setup event bus subscribers
+//        setupEventBusSubscribers();
 
         displayQueue = new DisplayQueue();
 
@@ -105,14 +105,14 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
 
     }
 
-    protected void setupEventBusSubscribers() {
-        try {
-            EventBus.getDefault().register(this);
-        }
-        catch(EventBusException e){
-            e.printStackTrace();
-        }
-    }
+//    protected void setupEventBusSubscribers() {
+//        try {
+//            EventBus.getDefault().register(this);
+//        }
+//        catch(EventBusException e){
+//            e.printStackTrace();
+//        }
+//    }
 
     public void processTranscriptionCallback(String transcript, String languageCode, long timestamp, boolean isFinal) {
         Log.d(TAG, "Got a transcript: " + transcript + ", which is FINAL? " + isFinal + " and has language code: " + languageCode);
@@ -136,14 +136,14 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         augmentOSLib.subscribe(DataStreamType.KILL_TRANSLATION_STREAM, this::processTranscriptionCallback);
 
         augmentOSLib.deinit();
-        Log.d(TAG, "csePoll handler remove");
-        Log.d(TAG, "displayPoll handler remove");
-        Log.d(TAG, "debugTranscriptsHnalderPoll handler remove");
+//        Log.d(TAG, "csePoll handler remove");
+//        Log.d(TAG, "displayPoll handler remove");
+//        Log.d(TAG, "debugTranscriptsHnalderPoll handler remove");
         if (debugTranscriptsRunning) {
             debugTranscriptsHandler.removeCallbacksAndMessages(null);
         }
-        Log.d(TAG, "locationSystem remove");
-        EventBus.getDefault().unregister(this);
+//        Log.d(TAG, "locationSystem remove");
+//        EventBus.getDefault().unregister(this);
 
         if (displayQueue != null) displayQueue.stopQueue();
 
