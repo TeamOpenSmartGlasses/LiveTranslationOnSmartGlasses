@@ -333,9 +333,9 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                     // Get the currently selected transcription language
                     String currentTranslateLanguage = getChosenSourceLanguage(getApplicationContext());
                     if (lastTranscribeLanguage != null) {
-                        augmentOSLib.stopTranslation(SpeechRecUtils.languageToLocale(lastTranscribeLanguage), SpeechRecUtils.languageToLocale(currentTranslateLanguage));
+                        augmentOSLib.stopTranslation(lastTranscribeLanguage, currentTranslateLanguage);
                     }
-                    augmentOSLib.requestTranslation(SpeechRecUtils.languageToLocale(currentTranscribeLanguage), SpeechRecUtils.languageToLocale(currentTranslateLanguage));
+                    augmentOSLib.requestTranslation(currentTranscribeLanguage, currentTranslateLanguage);
                     lastTranscribeLanguage = currentTranscribeLanguage;
                     finalTranslationText = "";
                 }
@@ -357,10 +357,10 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                     String currentTranscribeLanguage = getChosenTranscribeLanguage(getApplicationContext());
 
                     if (lastTranslateLanguage != null) {
-                        augmentOSLib.stopTranslation(SpeechRecUtils.languageToLocale(currentTranscribeLanguage), SpeechRecUtils.languageToLocale(lastTranslateLanguage));
+                        augmentOSLib.stopTranslation(currentTranscribeLanguage, lastTranslateLanguage);
                     }
 
-                    augmentOSLib.requestTranslation(SpeechRecUtils.languageToLocale(currentTranscribeLanguage), SpeechRecUtils.languageToLocale(currentTranslateLanguage));
+                    augmentOSLib.requestTranslation(currentTranscribeLanguage, currentTranslateLanguage);
                     lastTranslateLanguage = currentTranslateLanguage;
 
                     Log.d(TAG, "Subscribing to translation stream");
