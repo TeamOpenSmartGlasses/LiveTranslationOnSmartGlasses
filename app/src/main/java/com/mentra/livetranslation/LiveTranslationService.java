@@ -14,6 +14,7 @@ import com.teamopensmartglasses.augmentoslib.AugmentOSSettingsManager;
 import com.teamopensmartglasses.augmentoslib.DataStreamType;
 import com.teamopensmartglasses.augmentoslib.SmartGlassesAndroidService;
 import com.teamopensmartglasses.augmentoslib.events.TranslateOutputEvent;
+import com.teamopensmartglasses.augmentoslib.SpeechRecUtils;
 
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
@@ -331,60 +332,15 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         transcribeLanguageCheckHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                // Get the currently selected transcription language
                 String currentTranscribeLanguage = getChosenTranscribeLanguage(getApplicationContext());
-
-                // If the language has changed or this is the first call
                 if (lastTranscribeLanguage == null || !lastTranscribeLanguage.equals(currentTranscribeLanguage)) {
-                    lastTranscribeLanguage = currentTranscribeLanguage;
-
-                    switch (currentTranscribeLanguage) {
-                        case "Default":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_DEFAULT_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "English":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_ENGLISH_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Chinese":
-                        case "Chinese (Pinyin)":
-                        case "Chinese (Hanzi)":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_CHINESE_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Russian":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_RUSSIAN_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "French":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_FRENCH_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Spanish":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_SPANISH_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "German":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_GERMAN_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Arabic":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_ARABIC_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Korean":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_KOREAN_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Italian":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_ITALIAN_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Turkish":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_TURKISH_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Portuguese":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_PORTUGUESE_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        case "Dutch":
-                            augmentOSLib.subscribe(DataStreamType.TRANSCRIPTION_DUTCH_STREAM, LiveTranslationService.this::processTranscriptionCallback);
-                            break;
-                        default:
-                            Log.d(TAG, "UNKNOWN TRANSCRIBE LANGUAGE: " + currentTranscribeLanguage);
-                            break;
+                    // Get the currently selected transcription language
+                    String currentTranslateLanguage = getChosenSourceLanguage(getApplicationContext());
+                    if (lastTranscribeLanguage != null) {
+                        augmentOSLib.stopTranslation(SpeechRecUtils.languageToLocale(lastTranscribeLanguage), SpeechRecUtils.languageToLocale(currentTranslateLanguage));
                     }
-
+                    augmentOSLib.requestTranslation(SpeechRecUtils.languageToLocale(currentTranscribeLanguage), SpeechRecUtils.languageToLocale(currentTranslateLanguage));
+                    lastTranscribeLanguage = currentTranscribeLanguage;
                     finalTranslationText = "";
                 }
 
@@ -399,59 +355,23 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
             @Override
             public void run() {
                 String currentTranslateLanguage = getChosenSourceLanguage(getApplicationContext());
-
                 // If the language has changed or this is the first call
                 if (lastTranslateLanguage == null || !lastTranslateLanguage.equals(currentTranslateLanguage)) {
                     lastTranslateLanguage = currentTranslateLanguage;
+                    String currentTranscribeLanguage = getChosenTranscribeLanguage(getApplicationContext());
+
+                    if (lastTranslateLanguage != null) {
+                        augmentOSLib.stopTranslation(SpeechRecUtils.languageToLocale(currentTranscribeLanguage), SpeechRecUtils.languageToLocale(lastTranslateLanguage));
+                    }
+
+                    augmentOSLib.requestTranslation(SpeechRecUtils.languageToLocale(currentTranscribeLanguage), SpeechRecUtils.languageToLocale(currentTranslateLanguage));
+                    lastTranslateLanguage = currentTranslateLanguage;
 
                     Log.d(TAG, "Subscribing to translation stream");
-
-                    // Subscribe to the appropriate translation stream
-                    switch (currentTranslateLanguage) {
-                        case "English":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_ENGLISH_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Chinese":
-                        case "Chinese (Pinyin)":
-                        case "Chinese (Hanzi)":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_CHINESE_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Russian":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_RUSSIAN_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "French":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_FRENCH_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Spanish":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_SPANISH_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "German":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_GERMAN_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Arabic":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_ARABIC_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Korean":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_KOREAN_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Italian":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_ITALIAN_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Turkish":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_TURKISH_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Portuguese":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_PORTUGUESE_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        case "Dutch":
-                            augmentOSLib.subscribe(DataStreamType.TRANSLATION_DUTCH_STREAM, LiveTranslationService.this::processTranslationCallback);
-                            break;
-                        default:
-                            Log.d(TAG, "UNKNOWN TRANSLATE LANGUAGE: " + currentTranslateLanguage);
-                            break;
-                    }
                     finalTranslationText = "";
                 }
+
+
 
                 // Schedule the next check
                 translateLanguageCheckHandler.postDelayed(this, 333); // Approximately 3 times a second
