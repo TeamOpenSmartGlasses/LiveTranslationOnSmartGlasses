@@ -155,17 +155,13 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
     @Subscribe
     public void onTranslateTranscript(TranslateOutputEvent event) {
         String text = event.text;
-        String languageCode = event.languageCode;
-        long time = event.timestamp;
         boolean isFinal = event.isFinal;
-        boolean isTranslated = event.isTranslated;
 
-        if (isFinal && !isTranslated) {
+        if (isFinal) {
             transcriptsBuffer.add(text);
         }
-        if (isTranslated) {
-            debounceAndShowTranscriptOnGlasses(text, isFinal);
-        }
+
+        debounceAndShowTranscriptOnGlasses(text, isFinal);
     }
 
     private Handler glassesTranscriptDebounceHandler = new Handler(Looper.getMainLooper());
@@ -370,8 +366,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                     Log.d(TAG, "Subscribing to translation stream");
                     finalTranslationText = "";
                 }
-
-
 
                 // Schedule the next check
                 translateLanguageCheckHandler.postDelayed(this, 333); // Approximately 3 times a second
