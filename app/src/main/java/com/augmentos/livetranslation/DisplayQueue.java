@@ -1,4 +1,4 @@
-package com.mentra.livetranslation;
+package com.augmentos.livetranslation;
 
 import android.util.Log;
 

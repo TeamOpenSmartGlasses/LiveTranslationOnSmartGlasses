@@ -1,20 +1,17 @@
-package com.mentra.livetranslation;
+package com.augmentos.livetranslation;
 
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import androidx.preference.PreferenceManager;
-
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.huaban.analysis.jieba.SegToken;
-import com.teamopensmartglasses.augmentoslib.AugmentOSLib;
-import com.teamopensmartglasses.augmentoslib.AugmentOSSettingsManager;
-import com.teamopensmartglasses.augmentoslib.DataStreamType;
-import com.teamopensmartglasses.augmentoslib.SmartGlassesAndroidService;
-import com.teamopensmartglasses.augmentoslib.events.TranslateOutputEvent;
-import com.teamopensmartglasses.augmentoslib.SpeechRecUtils;
+import com.augmentos.augmentoslib.AugmentOSLib;
+import com.augmentos.augmentoslib.AugmentOSSettingsManager;
+import com.augmentos.augmentoslib.DataStreamType;
+import com.augmentos.augmentoslib.SmartGlassesAndroidService;
+import com.augmentos.augmentoslib.events.TranslateOutputEvent;
 
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
@@ -23,8 +20,6 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.EventBusException;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayDeque;

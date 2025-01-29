@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.mentra.livetranslation'
+    namespace 'com.augmentos.livetranslation'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.mentra.livetranslation"
+        applicationId "com.augmentos.livetranslation"
         minSdk 28
         targetSdk 33
         versionCode 1
