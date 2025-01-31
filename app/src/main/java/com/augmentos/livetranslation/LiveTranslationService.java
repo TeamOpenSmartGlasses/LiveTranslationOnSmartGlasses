@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.augmentos.augmentoslib.TranscriptProcessor;
 import com.huaban.analysis.jieba.JiebaSegmenter;
 import com.huaban.analysis.jieba.SegToken;
 import com.augmentos.augmentoslib.AugmentOSLib;
@@ -22,9 +23,7 @@ import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombi
 
 import org.greenrobot.eventbus.Subscribe;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 
 public class LiveTranslationService extends SmartGlassesAndroidService {
@@ -43,18 +42,16 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
     private boolean segmenterLoaded = false;
     private boolean segmenterLoading = false;
     private boolean hasUserBeenNotified = false;
-
-    private DisplayQueue displayQueue;
-
     private Handler transcribeLanguageCheckHandler;
     private String lastTranscribeLanguage = null;
     private Handler translateLanguageCheckHandler;
     private String lastTranslateLanguage = null;
     private final int maxNormalTextCharsPerTranscript = 30;
     private final int maxCharsPerHanziTranscript = 12;
+    private final int maxLines = 3;
 
-    private final TranscriptProcessor normalTextTranscriptProcessor = new TranscriptProcessor(maxNormalTextCharsPerTranscript);
-    private final TranscriptProcessor hanziTextTranscriptProcessor = new TranscriptProcessor(maxCharsPerHanziTranscript);
+    private final TranscriptProcessor normalTextTranscriptProcessor = new TranscriptProcessor(maxNormalTextCharsPerTranscript, maxLines);
+    private final TranscriptProcessor hanziTextTranscriptProcessor = new TranscriptProcessor(maxCharsPerHanziTranscript, maxLines);
     private final Handler callTimeoutHandler = new Handler(Looper.getMainLooper());
     private Runnable timeoutRunnable;
     public LiveTranslationService() {
@@ -68,10 +65,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         // Create AugmentOSLib instance with context: this
         augmentOSLib = new AugmentOSLib(this);
 
-
-        //start with english, will switch after
-//        augmentOSLib.subscribe(DataStreamType.TRANSLATION_ENGLISH_STREAM, LiveTranslationService.this::processTranslationCallback);
-
         // Subscribe to a data stream (ex: transcription), and specify a callback function
         // Initialize the language check handler
         transcribeLanguageCheckHandler = new Handler(Looper.getMainLooper());
@@ -80,11 +73,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         // Start periodic language checking
         startTranscribeLanguageCheckTask();
         startTranslateLanguageCheckTask();
-
-//        //setup event bus subscribers
-//        setupEventBusSubscribers();
-
-        displayQueue = new DisplayQueue();
 
         //make responses holder
         responsesBuffer = new ArrayList<>();
@@ -98,17 +86,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
 
 
         completeInitialization();
-
     }
-
-//    protected void setupEventBusSubscribers() {
-//        try {
-//            EventBus.getDefault().register(this);
-//        }
-//        catch(EventBusException e){
-//            e.printStackTrace();
-//        }
-//    }
 
     public void processTranscriptionCallback(String transcript, String languageCode, long timestamp, boolean isFinal) {
         Log.d(TAG, "Got a transcript: " + transcript + ", which is FINAL? " + isFinal + " and has language code: " + languageCode);
@@ -121,8 +99,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
 
     public void completeInitialization(){
         Log.d(TAG, "COMPLETE CONVOSCOPE INITIALIZATION");
-
-        displayQueue.startQueue();
     }
 
     @Override
@@ -132,16 +108,9 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         augmentOSLib.subscribe(DataStreamType.KILL_TRANSLATION_STREAM, this::processTranscriptionCallback);
 
         augmentOSLib.deinit();
-//        Log.d(TAG, "csePoll handler remove");
-//        Log.d(TAG, "displayPoll handler remove");
-//        Log.d(TAG, "debugTranscriptsHnalderPoll handler remove");
         if (debugTranscriptsRunning) {
             debugTranscriptsHandler.removeCallbacksAndMessages(null);
         }
-//        Log.d(TAG, "locationSystem remove");
-//        EventBus.getDefault().unregister(this);
-
-        if (displayQueue != null) displayQueue.stopQueue();
 
         Log.d(TAG, "ran onDestroy");
         super.onDestroy();
@@ -151,6 +120,8 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
     public void onTranslateTranscript(TranslateOutputEvent event) {
         String text = event.text;
         boolean isFinal = event.isFinal;
+        String fromLanguageCode = event.fromLanguageCode;
+        String toLanguageCode = event.toLanguageCode;
 
         if (isFinal) {
             transcriptsBuffer.add(text);
@@ -159,7 +130,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
         debounceAndShowTranscriptOnGlasses(text, isFinal);
     }
 
-    private Handler glassesTranscriptDebounceHandler = new Handler(Looper.getMainLooper());
+    private final Handler glassesTranscriptDebounceHandler = new Handler(Looper.getMainLooper());
     private Runnable glassesTranscriptDebounceRunnable;
     private long glassesTranscriptLastSentTime = 0;
     private long glassesTranslatedTranscriptLastSentTime = 0;
@@ -195,10 +166,10 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
             } else if (!segmenterLoading) {
                 new Thread(this::loadSegmenter).start();
                 hasUserBeenNotified = true;
-                displayQueue.addTask(new DisplayQueue.Task(() -> augmentOSLib.sendTextWall("Loading Pinyin Converter, Please Wait..."), true, false, false));
+                augmentOSLib.sendTextWall("Loading Pinyin Converter, Please Wait...");
             } else if (!hasUserBeenNotified) {  //tell user we are loading the pinyin converter
                 hasUserBeenNotified = true;
-                displayQueue.addTask(new DisplayQueue.Task(() -> augmentOSLib.sendTextWall("Loading Pinyin Converter, Please Wait..."), true, false, false));
+                augmentOSLib.sendTextWall("Loading Pinyin Converter, Please Wait...");
             }
         }
 
@@ -289,7 +260,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
             finalLiveTranslationDisplayText = "";
         }
 
-        displayQueue.addTask(new DisplayQueue.Task(() -> augmentOSLib.sendDoubleTextWall(finalLiveTranslationDisplayText, ""), true, false, true));
+        augmentOSLib.sendDoubleTextWall(finalLiveTranslationDisplayText, "");
     }
 
     public static void saveChosenSourceLanguage(Context context, String sourceLanguageString) {
@@ -298,7 +269,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
 
     public static String getChosenSourceLanguage(Context context) {
         String sourceLanguageString = AugmentOSSettingsManager.getStringSetting(context, "source_language");
-        if (sourceLanguageString.equals("")){
+        if (sourceLanguageString.isEmpty()){
             saveChosenSourceLanguage(context, "English");
             sourceLanguageString = "English";
         }
@@ -312,7 +283,7 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
 
     public static String getChosenTranscribeLanguage(Context context) {
         String transcribeLanguageString = AugmentOSSettingsManager.getStringSetting(context, "transcribe_language");
-        if (transcribeLanguageString.equals("")){
+        if (transcribeLanguageString.isEmpty()){
             saveChosenTranscribeLanguage(context, "Chinese");
             transcribeLanguageString = "Chinese";
         }
@@ -325,7 +296,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
             public void run() {
                 String currentTranscribeLanguage = getChosenTranscribeLanguage(getApplicationContext());
                 if (lastTranscribeLanguage == null || !lastTranscribeLanguage.equals(currentTranscribeLanguage)) {
-                    // Get the currently selected transcription language
                     String currentTranslateLanguage = getChosenSourceLanguage(getApplicationContext());
                     if (lastTranscribeLanguage != null) {
                         augmentOSLib.stopTranslation(lastTranscribeLanguage, currentTranslateLanguage);
@@ -348,7 +318,6 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                 String currentTranslateLanguage = getChosenSourceLanguage(getApplicationContext());
                 // If the language has changed or this is the first call
                 if (lastTranslateLanguage == null || !lastTranslateLanguage.equals(currentTranslateLanguage)) {
-                    lastTranslateLanguage = currentTranslateLanguage;
                     String currentTranscribeLanguage = getChosenTranscribeLanguage(getApplicationContext());
 
                     if (lastTranslateLanguage != null) {
@@ -366,143 +335,5 @@ public class LiveTranslationService extends SmartGlassesAndroidService {
                 translateLanguageCheckHandler.postDelayed(this, 333); // Approximately 3 times a second
             }
         }, 500);
-    }
-
-    public static class TranscriptProcessor {
-
-        private final int maxCharsPerLine;
-        private final int maxLines = 3;
-
-        private final Deque<String> lines;
-
-        private String partialText;
-
-        public TranscriptProcessor(int maxCharsPerLine) {
-            this.maxCharsPerLine = maxCharsPerLine;
-            this.lines = new ArrayDeque<>();
-            this.partialText = "";
-        }
-
-        public String processString(String newText, boolean isFinal) {
-            newText = (newText == null) ? "" : newText.trim();
-
-            if (!isFinal) {
-                // Store this as the current partial text (overwriting old partial)
-                partialText = newText;
-                return buildPreview(partialText);
-            } else {
-                // We have a final text -> clear out the partial text to avoid duplication
-                partialText = "";
-
-                // Wrap this final text
-                List<String> wrapped = wrapText(newText, maxCharsPerLine);
-                for (String chunk : wrapped) {
-                    appendToLines(chunk);
-                }
-
-                // Return only the finalized lines
-                return getTranscript();
-            }
-        }
-
-        private String buildPreview(String partial) {
-            // Wrap the partial text
-            List<String> partialChunks = wrapText(partial, maxCharsPerLine);
-
-            // Combine with finalized lines
-            List<String> combined = new ArrayList<>(lines);
-            combined.addAll(partialChunks);
-
-            // Truncate if necessary
-            if (combined.size() > maxLines) {
-                combined = combined.subList(combined.size() - maxLines, combined.size());
-            }
-
-            // Add padding to ensure exactly maxLines are displayed
-            int linesToPad = maxLines - combined.size();
-            for (int i = 0; i < linesToPad; i++) {
-                combined.add(""); // Add empty lines at the end
-            }
-
-            return String.join("\n", combined);
-        }
-
-        private void appendToLines(String chunk) {
-            if (lines.isEmpty()) {
-                lines.addLast(chunk);
-            } else {
-                String lastLine = lines.removeLast();
-                String candidate = lastLine.isEmpty() ? chunk : lastLine + " " + chunk;
-
-                if (candidate.length() <= maxCharsPerLine) {
-                    lines.addLast(candidate);
-                } else {
-                    // Put back the last line if it doesn't fit
-                    lines.addLast(lastLine);
-                    lines.addLast(chunk);
-                }
-            }
-
-            // Ensure we don't exceed maxLines
-            while (lines.size() > maxLines) {
-                lines.removeFirst();
-            }
-        }
-
-        private List<String> wrapText(String text, int maxLineLength) {
-            List<String> result = new ArrayList<>();
-            while (!text.isEmpty()) {
-                if (text.length() <= maxLineLength) {
-                    result.add(text);
-                    break;
-                } else {
-                    int splitIndex = maxLineLength;
-                    // move splitIndex left until we find a space
-                    while (splitIndex > 0 && text.charAt(splitIndex) != ' ') {
-                        splitIndex--;
-                    }
-                    // If we didn't find a space, force split
-                    if (splitIndex == 0) {
-                        splitIndex = maxLineLength;
-                    }
-
-                    String chunk = text.substring(0, splitIndex).trim();
-                    result.add(chunk);
-                    text = text.substring(splitIndex).trim();
-                }
-            }
-            return result;
-        }
-
-        public String getTranscript() {
-            // Create a copy of the lines for manipulation
-            List<String> allLines = new ArrayList<>(lines);
-
-            // Add padding to ensure exactly maxLines are displayed
-            int linesToPad = maxLines - allLines.size();
-            for (int i = 0; i < linesToPad; i++) {
-                allLines.add(""); // Add empty lines at the end
-            }
-
-            String finalString = String.join("\n", allLines);
-
-            lines.clear();
-
-            return finalString;
-        }
-
-
-        public void clear() {
-            lines.clear();
-            partialText = "";
-        }
-
-        public int getMaxCharsPerLine() {
-            return maxCharsPerLine;
-        }
-
-        public int getMaxLines() {
-            return maxLines;
-        }
     }
 }
